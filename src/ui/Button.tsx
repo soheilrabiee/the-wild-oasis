@@ -1,4 +1,11 @@
+import type { JSX } from "react";
+import React from "react";
 import styled, { css } from "styled-components";
+
+type ButtonProps = {
+    $variation?: "primary" | "secondary" | "danger";
+    $size?: "small" | "medium" | "large";
+};
 
 const sizes = {
     small: css`
@@ -48,20 +55,30 @@ const variations = {
     `,
 };
 
-const Button = styled.button`
-    font-size: 1.4rem;
-    padding: 1.2rem 1.6rem;
-    font-weight: 500;
+const StyledButton = styled.button<ButtonProps>`
     border: none;
     border-radius: var(--border-radius-sm);
-    background-color: var(--color-brand-600);
-    color: var(--color-brand-50);
     box-shadow: var(--shadow-sm);
-    cursor: pointer;
 
-    &:hover {
-        background-color: var(--color-brand-700);
-    }
+    ${(props) => props.$size && sizes[props.$size]}
+    ${(props) => props.$variation && variations[props.$variation]}
 `;
+
+// Using a wrapper to handle default props passing in to the styled component
+type WrapperProps = ButtonProps & React.ComponentPropsWithoutRef<"button">;
+
+function Button({
+    $variation = "primary",
+    $size = "medium",
+    ...rest
+}: WrapperProps): JSX.Element {
+    return (
+        <StyledButton
+            $variation={$variation}
+            $size={$size}
+            {...rest}
+        ></StyledButton>
+    );
+}
 
 export default Button;
