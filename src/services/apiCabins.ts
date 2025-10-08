@@ -1,6 +1,8 @@
 import type { Database } from "../types/supabase";
 import supabase from "./supabase";
 
+type Cabin = Database["public"]["Tables"]["cabins"];
+
 export async function getCabins() {
     const { data, error } = await supabase.from("cabins").select("*");
 
@@ -12,9 +14,21 @@ export async function getCabins() {
     return data;
 }
 
-export async function deleteCabin(
-    id: Database["public"]["Tables"]["cabins"]["Row"]["id"]
-) {
+export async function createCabin(newCabin: Cabin["Insert"]) {
+    const { data, error } = await supabase
+        .from("cabins")
+        .insert([newCabin])
+        .select();
+
+    if (error) {
+        console.error(error);
+        throw new Error("Cabins could not be created");
+    }
+
+    return data;
+}
+
+export async function deleteCabin(id: Cabin["Row"]["id"]) {
     const { error, data } = await supabase.from("cabins").delete().eq("id", id);
 
     if (error) {
