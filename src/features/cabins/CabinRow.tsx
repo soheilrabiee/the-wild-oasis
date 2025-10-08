@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import type { Database } from "../../types/supabase";
+import { formatCurrency } from "../../utils/helpers";
 
 const TableRow = styled.div`
     display: grid;
@@ -46,7 +47,18 @@ type CabinRowProps = {
 };
 
 function CabinRow({ cabin }: CabinRowProps) {
-    return <div>Row</div>;
+    const { name, maxCapacity, regularPrice, discount, image } = cabin;
+
+    return (
+        <TableRow role="row">
+            {image && <Img src={image} />}
+            <Cabin>{name}</Cabin>
+            <div>Fits up to {maxCapacity} guests</div>
+            {regularPrice && <Price>{formatCurrency(regularPrice)}</Price>}
+            {discount && <Discount>{formatCurrency(discount)}</Discount>}
+            <button>Delete</button>
+        </TableRow>
+    );
 }
 
 export default CabinRow;
