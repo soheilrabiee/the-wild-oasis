@@ -1,3 +1,4 @@
+import type { Database } from "../types/supabase";
 import supabase from "./supabase";
 
 export async function getCabins() {
@@ -6,6 +7,19 @@ export async function getCabins() {
     if (error) {
         console.error(error);
         throw new Error("Cabins could not be loaded");
+    }
+
+    return data;
+}
+
+export async function deleteCabin(
+    id: Database["public"]["Tables"]["cabins"]["Row"]["id"]
+) {
+    const { error, data } = await supabase.from("cabins").delete().eq("id", id);
+
+    if (error) {
+        console.error(error);
+        throw new Error("Cabins could not be deleted");
     }
 
     return data;
