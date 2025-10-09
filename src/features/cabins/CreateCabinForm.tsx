@@ -16,6 +16,7 @@ type FormValues = {
     regularPrice: number;
     discount: number;
     description: string;
+    image: FileList;
 };
 
 function CreateCabinForm() {
@@ -40,12 +41,10 @@ function CreateCabinForm() {
         onError: (err) => toast.error(err.message),
     });
 
-    // const onError: SubmitErrorHandler<FormValues> = (errors) =>
-    //     console.log(errors);
-
     const onSubmit: SubmitHandler<FormValues> = (data) => {
-        mutate(data);
+        mutate({ ...data, image: data.image[0] });
     };
+
     return (
         <Form onSubmit={handleSubmit(onSubmit)}>
             <FormRow label="Cabin name" error={errors.name?.message}>
@@ -125,7 +124,14 @@ function CreateCabinForm() {
             </FormRow>
 
             <FormRow label="Cabin photo">
-                <FileInput id="image" accept="image/*" disabled={isPending} />
+                <FileInput
+                    id="image"
+                    accept="image/*"
+                    disabled={isPending}
+                    {...register("image", {
+                        required: "This field is required",
+                    })}
+                />
             </FormRow>
 
             <FormRow>
