@@ -59,7 +59,10 @@ type FormValues = {
 };
 
 function CreateCabinForm() {
-    const { register, handleSubmit, reset, getValues } = useForm<FormValues>();
+    const { register, handleSubmit, reset, getValues, formState } =
+        useForm<FormValues>();
+
+    const { errors } = formState;
 
     const queryClient = useQueryClient();
 
@@ -94,6 +97,7 @@ function CreateCabinForm() {
                         required: "This field is required",
                     })}
                 />
+                {errors?.name?.message && <Error>{errors.name.message}</Error>}
             </FormRow>
 
             <FormRow>
