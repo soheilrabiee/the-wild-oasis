@@ -10,6 +10,7 @@ import Textarea from "../../ui/Textarea";
 import { createEditCabin } from "../../services/apiCabins";
 import FormRow from "../../ui/FormRow";
 import type { Database } from "../../types/supabase";
+import { useCreateCabin } from "./useCreateCabin";
 
 type Cabin = Database["public"]["Tables"]["cabins"]["Update"];
 type CabinInsert = Omit<
@@ -53,22 +54,9 @@ function CreateCabinForm({
 
     const { errors } = formState;
 
+    const { isCreating, createCabin } = useCreateCabin();
+
     const queryClient = useQueryClient();
-
-    const { mutate: createCabin, isPending: isCreating } = useMutation({
-        // New cabin object is passed into the function automatically
-        mutationFn: (newCabin: CabinInsert) => createEditCabin(newCabin),
-        onSuccess: () => {
-            toast.success("New cabin successfully created");
-
-            queryClient.invalidateQueries({
-                queryKey: ["cabin"],
-            });
-            reset();
-        },
-
-        onError: (err) => toast.error(err.message),
-    });
 
     const { mutate: editCabin, isPending: isEditing } = useMutation<
         Cabin,
@@ -97,7 +85,13 @@ function CreateCabinForm({
         if (isEditSession && image)
             editCabin({ newCabinData: { ...data, image }, id: editId });
         else if (!isEditSession && image)
-            createCabin({ ...data, image: image });
+            createCabin(
+                { ...data, image: image },
+                {
+                    // This callback function gets access to the data that is returned from the mutation function
+                    onSuccess: (data) => reset(),
+                }
+            );
     };
 
     return (
