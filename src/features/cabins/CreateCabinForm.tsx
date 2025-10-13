@@ -24,8 +24,10 @@ type FormValues = {
 
 function CreateCabinForm({
     cabinToEdit = {} as Cabin,
+    onCloseModal,
 }: {
     cabinToEdit?: Cabin;
+    onCloseModal: () => void;
 }) {
     const { isCreating, createCabin } = useCreateCabin();
     const { isEditing, editCabin } = useUpdateCabin();
@@ -61,7 +63,10 @@ function CreateCabinForm({
             editCabin(
                 { newCabinData: { ...data, image }, id: editId },
                 {
-                    onSuccess: (data) => reset(),
+                    onSuccess: (data) => {
+                        reset();
+                        onCloseModal?.();
+                    },
                 }
             );
         else if (!isEditSession && image)
@@ -69,13 +74,20 @@ function CreateCabinForm({
                 { ...data, image: image },
                 {
                     // This callback function gets access to the data that is returned from the mutation function
-                    onSuccess: (data) => reset(),
+                    onSuccess: (data) => {
+                        reset();
+                        // Conditionally calling a function if it exists
+                        onCloseModal?.();
+                    },
                 }
             );
     };
 
     return (
-        <Form onSubmit={handleSubmit(onSubmit)}>
+        <Form
+            onSubmit={handleSubmit(onSubmit)}
+            $type={onCloseModal ? "modal" : "regular"}
+        >
             <FormRow label="Cabin name" error={errors.name?.message}>
                 <Input
                     type="text"
@@ -167,7 +179,11 @@ function CreateCabinForm({
 
             <FormRow>
                 {/* type is an HTML attribute! */}
-                <Button $variation="secondary" type="reset">
+                <Button
+                    $variation="secondary"
+                    type="reset"
+                    onClick={() => onCloseModal?.()}
+                >
                     Cancel
                 </Button>
                 <Button disabled={isWorking}>
