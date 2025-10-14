@@ -1,5 +1,5 @@
 import type React from "react";
-import type { JSX } from "react";
+import { cloneElement, createContext, useContext, useState } from "react";
 import { createPortal } from "react-dom";
 import { HiXMark } from "react-icons/hi2";
 import styled from "styled-components";
@@ -53,23 +53,77 @@ const Button = styled.button`
     }
 `;
 
-type ModalProps = {
-    children: React.ReactNode;
-    onClose: () => void;
+type ModalContextType = {
+    openName: string;
+    open: (name: string) => void;
+    close: () => void;
 };
 
-function Modal({ children, onClose }: ModalProps): JSX.Element {
+const ModalContext = createContext<ModalContextType | undefined>(undefined);
+
+function useModalContext() {
+    const context = useContext(ModalContext);
+    if (!context)
+        throw new Error(
+            "Modal compound components must be used within <Modal>"
+        );
+    return context;
+}
+
+function Modal({ children }: { children: React.ReactNode }) {
+    const [openName, setOpenName] = useState("");
+
+    const close = () => setOpenName("");
+    const open = setOpenName;
+
+    return (
+        <ModalContext.Provider value={{ openName, close, open }}>
+            {children}
+        </ModalContext.Provider>
+    );
+}
+
+function Open({
+    children,
+    opens: opensWindowName,
+}: {
+    children: React.ReactElement<React.ButtonHTMLAttributes<HTMLButtonElement>>;
+    opens: string;
+}) {
+    const { open } = useModalContext();
+
+    return cloneElement(children, { onClick: () => open(opensWindowName) });
+}
+
+type ModalProps = {
+    children: React.ReactElement<{ onCloseModal: () => void }>;
+    name: string;
+};
+
+function Window({ children, name }: ModalProps) {
+    const { openName, close } = useModalContext();
+    if (name !== openName) return null;
+
     return createPortal(
         <Overlay>
             <StyledModal>
-                <Button onClick={onClose}>
+                <Button onClick={close}>
                     <HiXMark />
                 </Button>
-                <div>{children}</div>
+                <div>{cloneElement(children, { onCloseModal: close })}</div>
             </StyledModal>
         </Overlay>,
         document.body
     );
 }
 
-export default Modal;
+// Attach compound parts with proper typing
+type CompoundModal = React.FC<{ children: React.ReactNode }> & {
+    Open: typeof Open;
+    Window: typeof Window;
+};
+
+(Modal as CompoundModal).Open = Open;
+(Modal as CompoundModal).Window = Window;
+
+export default Modal as CompoundModal;

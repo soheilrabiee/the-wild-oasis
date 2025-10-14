@@ -27,7 +27,7 @@ function CreateCabinForm({
     onCloseModal,
 }: {
     cabinToEdit?: Cabin;
-    onCloseModal: () => void;
+    onCloseModal?: () => void;
 }) {
     const { isCreating, createCabin } = useCreateCabin();
     const { isEditing, editCabin } = useUpdateCabin();
