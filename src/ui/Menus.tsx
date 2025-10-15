@@ -1,8 +1,9 @@
 import type React from "react";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, type JSX } from "react";
 import { createPortal } from "react-dom";
 import { HiEllipsisVertical } from "react-icons/hi2";
 import styled from "styled-components";
+import { useOutsideClick } from "../hooks/useOutsideClick";
 
 const Menu = styled.div`
     display: flex;
@@ -33,7 +34,8 @@ type StyledListProps = {
     $position: {
         x: number;
         y: number;
-    };
+    } | null;
+    ref: React.RefObject<HTMLDivElement | null>;
 };
 
 const StyledList = styled.ul<StyledListProps>`
@@ -43,8 +45,8 @@ const StyledList = styled.ul<StyledListProps>`
     box-shadow: var(--shadow-md);
     border-radius: var(--border-radius-md);
 
-    right: ${(props) => props.$position.x}px;
-    top: ${(props) => props.$position.y}px;
+    right: ${(props) => props.$position?.x}px;
+    top: ${(props) => props.$position?.y}px;
 `;
 
 const StyledButton = styled.button`
@@ -73,9 +75,16 @@ const StyledButton = styled.button`
 `;
 
 type MenusContextType = {
-    openId: string;
-    close: (id: string) => void;
-    open: () => void;
+    openId: number | null;
+    close: () => void;
+    open: (id: number) => void;
+    position: { x: number; y: number } | null;
+    setPosition: React.Dispatch<
+        React.SetStateAction<{
+            x: number;
+            y: number;
+        } | null>
+    >;
 };
 
 const MenusContext = createContext<MenusContextType | undefined>(undefined);
@@ -95,22 +104,38 @@ type MenusProps = {
 };
 
 function Menus({ children }: MenusProps) {
-    const [openId, setOpenId] = useState("");
-    const close = () => setOpenId("");
-    const open = () => setOpenId;
+    const [openId, setOpenId] = useState<number | null>(null);
+    const [position, setPosition] = useState<{ x: number; y: number } | null>(
+        null
+    );
+    const close = () => setOpenId(null);
+    const open = setOpenId;
 
     return (
-        <MenusContext.Provider value={{ openId, open, close }}>
+        <MenusContext.Provider
+            value={{ openId, open, close, position, setPosition }}
+        >
             {children}
         </MenusContext.Provider>
     );
 }
 
 function Toggle({ id }: { id: number }) {
-    const { openId, close, open } = useMenusContext();
+    const { openId, close, open, setPosition } = useMenusContext();
 
-    function handleClick() {
-        openId === "" || openId !== id ? open(id) : close();
+    function handleClick(e: React.MouseEvent<HTMLElement>) {
+        const target = e.target as Element;
+        const button = target.closest("button");
+        if (!button) return;
+
+        const rect = button.getBoundingClientRect();
+        setPosition({
+            x: window.innerWidth - rect.width - rect.x,
+            y: rect.y + rect.height + 8,
+        });
+
+        if (openId === null || openId !== id) open(id);
+        else close();
     }
 
     return (
@@ -121,27 +146,55 @@ function Toggle({ id }: { id: number }) {
 }
 
 function List({ children, id }: { children: React.ReactNode; id: number }) {
-    const { openId } = useMenusContext();
+    const { openId, position, close } = useMenusContext();
+    const ref = useOutsideClick(close);
 
-    if (+openId !== id) return null;
+    if (openId !== id) return null;
 
     return createPortal(
-        <StyledList $position={{ x: 20, y: 20 }}>{children}</StyledList>,
+        <StyledList $position={position} ref={ref}>
+            {children}
+        </StyledList>,
         document.body
     );
 }
 
-function Button({ children }: { children: React.ReactNode }) {
+function Button({
+    children,
+    icon,
+    onClick,
+}: {
+    children: React.ReactNode;
+    icon: JSX.Element;
+    onClick?: () => void;
+}) {
+    const { close } = useMenusContext();
+
+    function handleClick() {
+        onClick?.();
+        close();
+    }
+
     return (
         <li>
-            <StyledButton>{children}</StyledButton>
+            <StyledButton onClick={handleClick}>
+                {icon}
+                <span>{children}</span>
+            </StyledButton>
         </li>
     );
 }
 
-Menus.Menu = Menu;
-Menus.Toggle = Toggle;
-Menus.List = List;
-Menus.Button = Button;
+type CompoundMenus = React.FC<{ children: React.ReactNode }> & {
+    Toggle: typeof Toggle;
+    List: typeof List;
+    Button: typeof Button;
+    Menu: typeof Menu;
+};
 
-export default Menus;
+(Menus as CompoundMenus).Menu = Menu;
+(Menus as CompoundMenus).Toggle = Toggle;
+(Menus as CompoundMenus).List = List;
+(Menus as CompoundMenus).Button = Button;
+
+export default Menus as CompoundMenus;
