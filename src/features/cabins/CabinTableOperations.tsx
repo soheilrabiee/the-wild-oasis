@@ -36,7 +36,7 @@ function CabinTableOperations() {
                         label: "Sort by price (high first)",
                     },
                     {
-                        value: "maxCapacity-desc",
+                        value: "maxCapacity-asc",
                         label: "Sort by capacity (low first)",
                     },
                     {

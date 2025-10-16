@@ -5,6 +5,8 @@ import { useCabins } from "./useCabins";
 import Table from "../../ui/Table";
 import Menus from "../../ui/Menus";
 import { useSearchParams } from "react-router";
+import { sortItems } from "../../utils/sortItems";
+import type { Database } from "../../types/supabase";
 
 function CabinTable(): JSX.Element {
     const { isPending, cabins } = useCabins();
@@ -13,6 +15,7 @@ function CabinTable(): JSX.Element {
     if (isPending) return <Spinner />;
 
     // When we go to the page for the first time we get null that's why we set it to "all" by default
+    // 1) Filter
     const filterValue = searchParams.get("discount") || "all";
 
     let filteredCabins: typeof cabins;
@@ -23,6 +26,24 @@ function CabinTable(): JSX.Element {
         filteredCabins = cabins?.filter(
             (cabin) => cabin.discount && cabin.discount > 0
         );
+
+    // 2) Sort
+    type Cabin = Database["public"]["Tables"]["cabins"]["Row"];
+    type SortField = keyof Pick<
+        Cabin,
+        "created_at" | "name" | "regularPrice" | "discount" | "maxCapacity"
+    >;
+    type SortDirection = "asc" | "desc";
+
+    const sortBy = searchParams.get("sortBy") || "created_at-asc";
+    const [rawField, rawDirection] = sortBy.split("-");
+
+    const field = (rawField as SortField) ?? "created_at";
+    const direction = (rawDirection as SortDirection) ?? "asc";
+
+    const sortedCabins = filteredCabins
+        ? sortItems(filteredCabins, field, direction)
+        : undefined;
 
     return (
         <Menus>
@@ -38,7 +59,7 @@ function CabinTable(): JSX.Element {
 
                 <Table.Body
                     // data={cabins}
-                    data={filteredCabins}
+                    data={sortedCabins}
                     render={(cabin) => (
                         <CabinRow cabin={cabin} key={cabin?.id} />
                     )}

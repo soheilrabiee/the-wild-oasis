@@ -20,12 +20,14 @@ const StyledSelect = styled.select<StyledSelectProps>`
 
 type SelectProps = {
     options: { label: string; value: string }[];
+    value: string;
     type?: "white";
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 };
 
-function Select({ options, value, ...props }: SelectProps) {
+function Select({ options, value, onChange, ...props }: SelectProps) {
     return (
-        <StyledSelect value={value} {...props}>
+        <StyledSelect value={value} onChange={onChange} {...props}>
             {options.map((option) => (
                 <option value={option.value} key={option.value}>
                     {option.label}
