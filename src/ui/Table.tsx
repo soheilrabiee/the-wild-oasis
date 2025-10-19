@@ -1,7 +1,6 @@
 import type React from "react";
 import { createContext, useContext, type JSX } from "react";
 import styled from "styled-components";
-import type { Database } from "../types/supabase";
 
 const StyledTable = styled.div`
     border: 1px solid var(--color-grey-200);
@@ -109,13 +108,12 @@ function Row({ children }: { children: React.ReactNode }) {
     );
 }
 
-type Cabin = Database["public"]["Tables"]["cabins"]["Row"];
-function Body({
+function Body<T>({
     data,
     render,
 }: {
-    data: Cabin[] | undefined;
-    render: (cabin: Cabin) => JSX.Element;
+    data: T[] | undefined;
+    render: (item: T) => JSX.Element;
 }) {
     if (!data?.length) return <Empty>No data to show at the moment</Empty>;
 

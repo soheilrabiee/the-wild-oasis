@@ -7,18 +7,20 @@ import Menus from "../../ui/Menus";
 import { useSearchParams } from "react-router";
 import { sortItems } from "../../utils/sortItems";
 import type { Database } from "../../types/supabase";
+import Empty from "../../ui/Empty";
 
 function CabinTable(): JSX.Element {
     const { isPending, cabins } = useCabins();
     const [searchParams] = useSearchParams();
 
     if (isPending) return <Spinner />;
+    if (!cabins?.length) return <Empty resourceName="cabins" />;
 
     // When we go to the page for the first time we get null that's why we set it to "all" by default
     // 1) Filter
     const filterValue = searchParams.get("discount") || "all";
 
-    let filteredCabins: typeof cabins;
+    let filteredCabins: typeof cabins = cabins;
     if (filterValue === "all") filteredCabins = cabins;
     if (filterValue === "no-discount")
         filteredCabins = cabins?.filter((cabin) => cabin.discount === 0);

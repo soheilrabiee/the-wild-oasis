@@ -8,79 +8,104 @@ import { formatCurrency } from "../../utils/helpers";
 import { formatDistanceFromNow } from "../../utils/helpers";
 
 const Cabin = styled.div`
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: var(--color-grey-600);
-  font-family: "Sono";
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--color-grey-600);
+    font-family: "Sono";
 `;
 
 const Stacked = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
 
-  & span:first-child {
-    font-weight: 500;
-  }
+    & span:first-child {
+        font-weight: 500;
+    }
 
-  & span:last-child {
-    color: var(--color-grey-500);
-    font-size: 1.2rem;
-  }
+    & span:last-child {
+        color: var(--color-grey-500);
+        font-size: 1.2rem;
+    }
 `;
 
 const Amount = styled.div`
-  font-family: "Sono";
-  font-weight: 500;
+    font-family: "Sono";
+    font-weight: 500;
 `;
 
-function BookingRow({
-  booking: {
-    id: bookingId,
-    created_at,
-    startDate,
-    endDate,
-    numNights,
-    numGuests,
-    totalPrice,
-    status,
-    guests: { fullName: guestName, email },
-    cabins: { name: cabinName },
-  },
-}) {
-  const statusToTagName = {
-    unconfirmed: "blue",
-    "checked-in": "green",
-    "checked-out": "silver",
-  };
+type Booking = {
+    id: number;
+    created_at: string;
+    startDate: string | null;
+    endDate: string | null;
+    numNights: number | null;
+    numGuests: number | null;
+    status: string | null;
+    totalPrice: number | null;
+    cabins: { name: string | null } | null;
+    guests: {
+        fullName: string | null;
+        email: string | null;
+    } | null;
+};
 
-  return (
-    <Table.Row>
-      <Cabin>{cabinName}</Cabin>
+function BookingRow({ booking }: { booking: Booking }) {
+    const {
+        id: bookingId,
+        created_at,
+        startDate,
+        endDate,
+        numNights,
+        numGuests,
+        totalPrice,
+        status,
+        guests,
+        cabins,
+    } = booking;
 
-      <Stacked>
-        <span>{guestName}</span>
-        <span>{email}</span>
-      </Stacked>
+    const guestName = guests?.fullName ?? "Unknown guest";
+    const email = guests?.email ?? "-";
+    const cabinName = cabins?.name ?? "Unknown cabin";
 
-      <Stacked>
-        <span>
-          {isToday(new Date(startDate))
-            ? "Today"
-            : formatDistanceFromNow(startDate)}{" "}
-          &rarr; {numNights} night stay
-        </span>
-        <span>
-          {format(new Date(startDate), "MMM dd yyyy")} &mdash;{" "}
-          {format(new Date(endDate), "MMM dd yyyy")}
-        </span>
-      </Stacked>
+    type BookingStatus = "unconfirmed" | "checked-in" | "checked-out";
+    const statusToTagName: Record<BookingStatus, string> = {
+        unconfirmed: "blue",
+        "checked-in": "green",
+        "checked-out": "silver",
+    };
 
-      <Tag type={statusToTagName[status]}>{status.replace("-", " ")}</Tag>
+    return (
+        <Table.Row>
+            <Cabin>{cabinName}</Cabin>
 
-      <Amount>{formatCurrency(totalPrice)}</Amount>
-    </Table.Row>
-  );
+            <Stacked>
+                <span>{guestName}</span>
+                <span>{email}</span>
+            </Stacked>
+
+            <Stacked>
+                <span>
+                    {isToday(new Date(startDate ?? ""))
+                        ? "Today"
+                        : formatDistanceFromNow(startDate ?? "")}{" "}
+                    &rarr; {numNights} night stay
+                </span>
+                <span>
+                    {format(new Date(startDate ?? ""), "MMM dd yyyy")} &mdash;{" "}
+                    {format(new Date(endDate ?? ""), "MMM dd yyyy")}
+                </span>
+            </Stacked>
+
+            {status && (
+                <Tag $type={statusToTagName[status as BookingStatus]}>
+                    {status.replace("-", " ")}
+                </Tag>
+            )}
+
+            <Amount>{formatCurrency(totalPrice ?? 0)}</Amount>
+        </Table.Row>
+    );
 }
 
 export default BookingRow;
