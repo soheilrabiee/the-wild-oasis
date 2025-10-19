@@ -3,9 +3,13 @@ import supabase from "./supabase";
 
 type getBookingsProps = {
     filter: { field: string; value: string } | null;
+    sortBy: {
+        field: string;
+        direction: string;
+    };
 };
 
-export async function getBookings({ filter }: getBookingsProps) {
+export async function getBookings({ filter, sortBy }: getBookingsProps) {
     let query = supabase
         .from("bookings")
         .select(
@@ -13,7 +17,13 @@ export async function getBookings({ filter }: getBookingsProps) {
         );
 
     // Filter
-    if (filter !== null) query = query.eq(filter.field, filter.value);
+    if (filter) query = query.eq(filter.field, filter.value);
+
+    // Sort
+    if (sortBy)
+        query = query.order(sortBy.field, {
+            ascending: sortBy.direction === "asc",
+        });
 
     const { data, error } = await query;
 

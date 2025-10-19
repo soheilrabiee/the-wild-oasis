@@ -15,14 +15,19 @@ export function useBookings() {
                   value: filterValue,
               };
 
+    // Sort By
+    const sortByRaw = searchParams.get("sortBy") || "startDate-desc";
+    const [field, direction] = sortByRaw.split("-");
+    const sortBy = { field, direction };
+
     const {
         isPending,
         data: bookings,
         error,
     } = useQuery({
         // Whenever the filter changes then the query refetches the data because the filter is in the dependency array
-        queryKey: ["bookings", filter],
-        queryFn: () => getBookings({ filter }),
+        queryKey: ["bookings", filter, sortBy],
+        queryFn: () => getBookings({ filter, sortBy }),
     });
 
     return { isPending, bookings, error };
