@@ -61,6 +61,7 @@ export async function getBooking(id: number) {
 
     return data;
 }
+export type BookingType = Awaited<ReturnType<typeof getBooking>>;
 
 // Returns all BOOKINGS that are were created after the given date. Useful to get bookings created in the last 30 days, for example.
 export async function getBookingsAfterDate(date) {
