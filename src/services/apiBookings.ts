@@ -1,8 +1,11 @@
+import type { Database } from "../types/supabase";
 import { paginationSize } from "../utils/config";
 import { getToday } from "../utils/helpers";
 import supabase from "./supabase";
 
 const PAGE_SIZE = paginationSize;
+
+type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
 
 type getBookingsProps = {
     filter: { field: string; value: string } | null;
@@ -117,7 +120,8 @@ export async function getStaysTodayActivity() {
     return data;
 }
 
-export async function updateBooking(id, obj) {
+type BookingUpdate = Partial<BookingRow>;
+export async function updateBooking(id: number, obj: BookingUpdate) {
     const { data, error } = await supabase
         .from("bookings")
         .update(obj)

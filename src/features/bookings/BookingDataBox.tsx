@@ -182,25 +182,23 @@ function BookingDataBox({ booking }: { booking: BookingType }) {
                     {hasBreakfast ? "Yes" : "No"}
                 </DataItem>
 
-                {isPaid && (
-                    <Price $isPaid={isPaid}>
-                        <DataItem
-                            icon={<HiOutlineCurrencyDollar />}
-                            label={`Total price`}
-                        >
-                            {formatCurrency(totalPrice ?? 0)}
+                <Price $isPaid={isPaid ?? false}>
+                    <DataItem
+                        icon={<HiOutlineCurrencyDollar />}
+                        label={`Total price`}
+                    >
+                        {formatCurrency(totalPrice ?? 0)}
 
-                            {hasBreakfast &&
-                                ` (${formatCurrency(
-                                    cabinPrice ?? 0
-                                )} cabin + ${formatCurrency(
-                                    extrasPrice ?? 0
-                                )} breakfast)`}
-                        </DataItem>
+                        {hasBreakfast &&
+                            ` (${formatCurrency(
+                                cabinPrice ?? 0
+                            )} cabin + ${formatCurrency(
+                                extrasPrice ?? 0
+                            )} breakfast)`}
+                    </DataItem>
 
-                        <p>{isPaid ? "Paid" : "Will pay at property"}</p>
-                    </Price>
-                )}
+                    <p>{isPaid ? "Paid" : "Will pay at property"}</p>
+                </Price>
             </Section>
 
             <Footer>
